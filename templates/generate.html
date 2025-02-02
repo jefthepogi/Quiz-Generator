@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Quizzler</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+    </head>
+    <body>
+      <p id="response_data" style="display: none;">{{ responseData|tojson }}</p>
+      <span id="total_items" style="display: none;">{{ totalItems }}</span>
+      <form id="item-container" class="col" action="/submitting" method="post">
+        <h3 id="question" class="row"></h3>
+        <div id="choices" class="col"></div>
+        <input type='hidden' id="hiddenField" name="usr-result" value="">
+        <button id="next-btn" disabled="true" class="prevent-select">Next</button>
+      </form>
+      <script>
+        const data = JSON.parse(document.getElementById("response_data").innerText);
+        const total_items = Number(document.getElementById("total_items").innerText);
+        let item = 0;
+        let current_item;
+        const choicesDIV = document.getElementById("choices");
+        const nextButton = document.getElementById("next-btn");
+        let results = {
+          score: total_items,
+          mistakes: []
+        };
+
+        function displayQuestion() {
+          current_item = data["quiz"][item];
+          document.getElementById("question").innerText = current_item["question"];
+          choicesDIV.innerHTML = '';
+          for (let i=0; i<4; i++) {
+            choicesDIV.innerHTML += `<button id="choice-${i}">${current_item["choices"][i]}</button>`;
+          }
+        }
+        displayQuestion();
+        // Event Delegation https://www.freecodecamp.org/news/event-delegation-javascript/
+        choicesDIV.addEventListener("click", (event) => {
+          event.preventDefault();
+          const currTarget = event.target;
+          if (currTarget.tagName === 'BUTTON') {
+            const _id = Number(event.target.id.replace(/[^0-9]/g, ''))
+            if (current_item["choices"][_id] === current_item["correctanswer"]) {
+              currTarget.classList.add("correct");
+            } else {
+              currTarget.classList.add("incorrect");
+              results.score -= 1;
+              results.mistakes.push({question: String(item + 1) + ". " + current_item["question"], correct: current_item["correctanswer"]});
+            }
+            nextButton.removeAttribute("disabled");
+            const all_buttons = choicesDIV.getElementsByTagName("button");
+            for (let i=0; i<all_buttons.length; i++) {
+              if (i === _id) { all_buttons[i].style.pointerEvents = "none"; continue; }
+              all_buttons[i].disabled = true;
+            }
+          } 
+        });
+
+        nextButton.addEventListener("click", () => {
+          item++;
+          if (item <= total_items - 1) {
+            displayQuestion();
+            nextButton.disabled = true;
+            if (item === total_items - 1) {
+              nextButton.innerText = "Submit";
+            } 
+          } else if (item === total_items) {
+            document.getElementById("hiddenField").value = JSON.stringify(results);
+            document.getElementById("item-container").submit();
+          }
+        }); 
+      </script>
+    </body>
+</html>

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Quizzler</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    </head>
+    <body>
+      <span id="result-data" style="display: none;">{{ resultData|tojson }}</span>
+      <h3 id="show-score"></h3>
+      <script>
+        const result = JSON.parse(document.getElementById("result-data").innerText);
+        const usrScore = document.getElementById("show-score");
+        const count = result.mistakes.length;
+        let pronoun = "these";
+        if (count < 2) { pronoun = "this"; }
+        usrScore.innerHTML = `You've managed to answer ${result.score} item/s correctly! <br><br>...Except ${pronoun}: `;
+        for (let i=0; i<count; i++) {
+          const item = document.createElement("p");
+          item.innerHTML = `${result.mistakes[i].question}<br><pre>${result.mistakes[i].correct}`;
+          document.body.appendChild(item);
+        }
+      </script>
+    </body>
+</html>
