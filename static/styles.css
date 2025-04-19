@@ -1,6 +1,7 @@
 body {
   margin: 20px;
-  font-family:system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  font-family: 'Poppins', system-ui;
+  background-color: #dcdcea
 }
 
 .row {
@@ -19,6 +20,59 @@ body {
   user-select: none; /* Standard syntax */
 }
 
+/* index.html */
+h2 {
+  text-align: center;
+}
+nav {
+  margin-left: auto;
+  margin-right: auto;
+  width: fit-content;
+}
+nav > a {
+  text-decoration: none;
+  margin-inline: 1rem;
+}
+form {
+  margin-right: auto;
+  margin-left: auto;
+  width: fit-content;
+}
+#item-counter {
+  align-self: flex-end;
+}
+form > div.panel {
+  box-sizing: border-box;
+  background-color: white;
+  padding-inline: 6rem;
+  padding-block: 2rem;
+  width: 500px;
+  height: 300px;
+  border-radius: 12px;
+  box-shadow: 4px 4px 10px rgba(137, 137, 137, 0.393);
+  justify-content: center;
+}
+#text-tab textarea {
+  resize: none;
+}
+#document-tab input {
+  width: fit-content;
+  margin-top: 1rem;
+  align-self: center;
+}
+div.file-upload {
+  border-radius: 4px;
+  outline: 2px dashed skyblue;
+  padding: 3rem;
+  align-items: center;
+  cursor: pointer;
+}
+div.file-upload > img {
+  height: 50px;
+  width: 50px;
+}
+
+/* generate.html */
 button.correct {
   background-color: rgb(97, 229, 31);
   border: 2px solid seagreen;
@@ -58,8 +112,17 @@ button.incorrect {
   min-height: 2rem;
 }
 
+.choice-btn {
+  padding-block: 1rem;
+  padding-inline: 1rem;
+}
+
 #next-btn {
   align-self: flex-end;
   padding: 0.6rem;
   cursor: pointer;
+}
+
+.inactive {
+  display: none;
 }

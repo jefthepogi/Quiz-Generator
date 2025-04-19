@@ -4,21 +4,42 @@
         <meta charset="utf-8">
         <title>Quizzler</title>
         <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+        <link href='https://fonts.googleapis.com/css?family=Poppins' rel='stylesheet'>
     </head>
     <body>
-      <h2>Upload your text and get quiz questions with AI (Powered by GroqCloud.)</h2>
-      <form class="col" style="display: flex; gap: 0.4rem;" action="/generating" method="post">
-        <label class="row" for="quantity">
+
+      <h2>QUIZZLER</h2>
+      <nav>
+        <a href="#text-tab">Text</a>
+        <a href="#document-tab">Document</a>
+      </nav>
+      <form class="col" style="gap: 0.4rem;" action="/generating" method="post" enctype="multipart/form-data">
+        <div id="item-counter" class="row">
           <input type="number" id="quantity" name="quantity" value="5" min="5" max="30">
           <span style="margin-left: 0.2rem;">items</span>
-        </label>
-        <div class="row" style="gap: 0.3rem">
-          <textarea onkeyup="countChars(this);" minlength="3000" maxlength="50000" rows="5" cols="50" name="usrinput" placeholder="Enter text here..."></textarea>
+        </div>
+
+        <div id="text-tab" class="col panel" style="gap: 0.3rem">
+          <div class="row" style="gap: 0.3rem">
+            <textarea onkeyup="countChars(this);" minlength="200" maxlength="50000" rows="12" cols="80" name="usrinput" placeholder="Enter text here..."></textarea>
+            <input type="submit" value="Generate">
+          </div>
+          <span id="char-counter" style="color: grey; font-size: 0.8rem;"></span>
+        </div>
+
+        <div id="document-tab" class="col panel inactive" style="gap: 0.3rem;">
+          <div class="file-upload col">
+            <input type="file" id="file-input" name="usrinput" accept=".pdf, application/pdf" hidden>
+            <img src="static/file-upload-icon.svg">
+            <p>Upload your File</p>
+          </div>
           <input type="submit" value="Generate">
         </div>
-        <span id="char-counter" style="color: grey; font-size: 0.8rem;"></span>
+
       </form>
+
       <script>
+
         function countChars(self) {
           let characters = self.value ? self.value.length : 0;
           const textbox = document.getElementsByName("usrinput")[0];
@@ -32,6 +53,50 @@
             charCounter.style.color = "grey";
           }
         }
+
+        const navbar = document.getElementsByTagName("nav")[0];
+        const tabPanels = document.querySelectorAll("form > div.panel");
+        navbar.addEventListener("click", function (e) { 
+          const clickedTab = e.target.closest("a");
+          if (!clickedTab) return;
+          e.preventDefault();
+
+          tabPanels.forEach((panel) => {
+            panel.classList.add("inactive");
+            const input_tag = panel.querySelector('[name="usrinput"]');
+            input_tag.setAttribute("disabled", "");
+          });
+          
+          const target_tab_id = clickedTab.getAttribute("href");
+          const active_panel = document.getElementById(target_tab_id.replace('#',''));
+          active_panel.classList.remove("inactive");
+          const input_tag = active_panel.querySelector('[name="usrinput"]');
+          input_tag.removeAttribute("disabled");
+        });
+
+        const file_upload = document.querySelector(".file-upload");
+        const file_input = document.getElementById("file-input");
+
+        file_upload.addEventListener("click", function () {
+          file_input.click();
+        });
+
+        file_input.addEventListener('change', (e) => {
+          const img = file_upload.querySelector("img");
+          const desc = file_upload.querySelector("p");
+          if (file_input.value && file_input.files.length > 0) {
+            const file_name = file_input.files[0].name;
+            file_upload.style.outline = "3px solid skyblue";
+            img.classList.add("inactive");
+            console.log("file uploaded.");
+            console.log(file_name);
+            desc.innerText = file_name;
+          } else {
+            img.classList.remove("inactive");
+            file_upload.style.outline = "2px dashed blue";
+            desc.innerText = "Upload your File"
+          }
+        });
       </script>
     </body>
 </html>

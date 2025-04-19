@@ -31,7 +31,7 @@
           document.getElementById("question").innerText = current_item["question"];
           choicesDIV.innerHTML = '';
           for (let i=0; i<4; i++) {
-            choicesDIV.innerHTML += `<button id="choice-${i}">${current_item["choices"][i]}</button>`;
+            choicesDIV.innerHTML += `<button class="choice-btn" id="choice-${i}">${current_item["choices"][i]}</button>`;
           }
         }
         displayQuestion();

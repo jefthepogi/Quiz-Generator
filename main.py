@@ -2,39 +2,59 @@ import os
 from flask import Flask, request, render_template, redirect, url_for
 from groq import Groq
 import json
+import pypdfium2 as pdfium
+import re
 
-# Initialize Flask app
-app = Flask(__name__)
+
+app = Flask(__name__) # Initialize Flask app
 jsonData = ""
 items = 0
 resultData = dict()
 
-# Function to call the AI API
-def get_ai_response(user_input, items: int):
+def get_ai_response(text, items: int): # Function to call the AI API
     client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
     response = client.chat.completions.create(
         messages=[
             {
                 "role": "user",
-                "content": 'Create a' + f"{items}" + '-item quiz from the content below and extract it in a json object format like {quiz: [{question:, choices:, correctanswer:}]}:\n' + user_input + "\n",
+                "content": 'The questions you must ask must be relevant to the purpose of the whole text, for instance, scientific literatures must adhere to scientific questions. Avoid including superfluous informations like marginal data if there are any present. ' +
+                'Create a' + f"{items}" + '-item quiz from the content below and extract it in a json object format like {quiz: [{question:, choices:, correctanswer:}]}:\n' + text
             },
             {
                 "role": "assistant",
-                "content": "```json"
+                "content": "json"    
             }
         ],
         model="llama-3.3-70b-versatile",
-        temperature=0.4,
+        temperature=0.3,
     )
-    return response.choices[0].message.content.replace("```", "")
+    return response.choices[0].message.content
 
 def validate_json(response):
     try:
-        print(response)
+        # print(response)
         return json.loads(response)
     except json.JSONDecodeError:
         print("invalid json format.")
         return None
+
+def extractPDF(data: bytes) -> str:
+    text = ""
+    pdf = pdfium.PdfDocument(data)
+    
+    # Regex to match alphanumeric characters, spaces, and basic punctuation
+    regex = re.compile(r"[^a-zA-Z0-9\s.,!?;:\-()'\"\n]")
+    
+    for i in range(len(pdf)):
+        page = pdf.get_page(i)
+        textpage = page.get_textpage()
+        page_text = textpage.get_text_range()
+        
+        # Remove unwanted symbols using regex
+        cleaned_text = regex.sub("", page_text)
+        text += cleaned_text + "\n"
+
+    return text
 
 @app.route("/")
 def index():
@@ -44,11 +64,22 @@ def index():
 def generateQuiz():
     global jsonData
     global items
+    text = ""
     if request.method == "POST":
-        # Get the form data
-        user_input = request.form.get("usrinput", "")  # This matches the form field name "usrinput"
+        fieldname = "usrinput"
+        if fieldname in request.form:
+            text = request.form.get(fieldname, "")
+            print("text mode")
+        elif fieldname in request.files:
+            file = request.files.get(fieldname)
+            file.save(f"uploads/{file.filename}")
+            with open(f"uploads/{file.filename}", "rb") as f:
+                data = f.read()
+            text = extractPDF(data)
+            print("document mode")
+
         items = request.form.get("quantity", 0)
-        jsonData = validate_json(get_ai_response(user_input, items))
+        jsonData = validate_json(get_ai_response(text, items))
         return redirect(url_for("generated"))
     # request.method == "GET":
     return redirect(url_for("index"))
@@ -73,5 +104,5 @@ def submitting():
 def results():
     return render_template("results.html", resultData=resultData)
 
-if __name__ == "__main__":  
+if __name__ == "__main__":
     app.run(host="localhost", port=8080, debug=True)
